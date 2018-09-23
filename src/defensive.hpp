@@ -131,7 +131,7 @@
 #define FEA_FULFILLS_RULE_OF_5(t) \
 	static_assert(FEA_DESTRUCTIBLE(t)() && FEA_COPY_CONSTRUCTIBLE(t)() \
 					&& FEA_MOVE_CONSTRUCTIBLE(t)() && FEA_COPY_ASSIGNABLE(t)() \
-					&& FEA_TRIVIALLY_MOVE_ASSIGNABLE(t)(), \
+					&& FEA_MOVE_ASSIGNABLE(t)(), \
 			#t " : doesn't fulfill rule of 5")
 
 #define FEA_FULFILLS_RULE_OF_6(t) \
