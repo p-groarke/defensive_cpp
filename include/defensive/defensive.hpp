@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #include <type_traits>
 
+/*
 #define FEA_DEFAULT_CONSTRUCTIBLE(t) \
 	[]() { \
 		static_assert(std::is_default_constructible_v<t>, \
@@ -171,3 +172,67 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					&& FEA_NOT_COPY_ASSIGNABLE(t)() \
 					&& FEA_MOVE_ASSIGNABLE(t)(), \
 			#t " : doesn't fulfill move only")
+
+*/
+
+// Rule of 5
+#define FEA_ASSERT_DESTRUCTIBLE(t) \
+	static_assert(std::is_destructible_v<t>, #t " : must be destructible")
+
+#define FEA_ASSERT_COPY_CONSTRUCTIBLE(t) \
+	static_assert(std::is_copy_constructible_v<t>, \
+			#t " : must be copy constructible")
+
+#define FEA_ASSERT_MOVE_CONSTRUCTIBLE(t) \
+	static_assert(std::is_move_constructible_v<t>, \
+			#t " : must be move constructible")
+
+#define FEA_ASSERT_COPY_ASSIGNABLE(t) \
+	static_assert(std::is_copy_assignable_v<t>, #t " : must be copy assignable")
+
+#define FEA_ASSERT_MOVE_ASSIGNABLE(t) \
+	static_assert(std::is_move_assignable_v<t>, #t " : must be move assignable")
+
+#define FEA_CREATE_GENERATED_5_ALL_CHECK(t) \
+	namespace detail { \
+	inline constexpr bool assert_generated_5_##t() { \
+		constexpr bool generated_5 \
+				= std::is_destructible_v< \
+						  t> && std::is_copy_constructible_v<t> && std::is_move_constructible_v<t> && std::is_copy_assignable_v<t> && std::is_move_assignable_v<t>; \
+		static_assert(generated_5, \
+				#t \
+				" : doesn't implement required 5 constructors and operators " \
+				"(dtor, copy ctor, move ctor, copy assignement, move " \
+				"assignement)"); \
+		return generated_5; \
+	} \
+	}
+
+#define FEA_CREATE_GENERATED_5_INDIVUAL_CHECKS(t) \
+	namespace detail { \
+	inline constexpr void assert_individual_generated_5_##t( \
+			bool everything_ok) { \
+		if constexpr (!everything_ok) { \
+			FEA_ASSERT_DESTRUCTIBLE(t); \
+			FEA_ASSERT_COPY_CONSTRUCTIBLE(t); \
+			FEA_ASSERT_MOVE_CONSTRUCTIBLE(t); \
+			FEA_ASSERT_COPY_ASSIGNABLE(t); \
+			FEA_ASSERT_MOVE_ASSIGNABLE(t); \
+		} \
+	} \
+	}
+
+
+#define FEA_GENERATED_5_CTORS(t) \
+	FEA_CREATE_GENERATED_5_ALL_CHECK(t) \
+	FEA_CREATE_GENERATED_5_INDIVIDUAL_CHECKS(t)
+//if constexpr (!detail::assert_generated_5_##t()) { \
+	//	FEA_ASSERT_DESTRUCTIBLE(t); \
+	//	FEA_ASSERT_COPY_CONSTRUCTIBLE(t); \
+	//	FEA_ASSERT_MOVE_CONSTRUCTIBLE(t); \
+	//	FEA_ASSERT_COPY_ASSIGNABLE(t); \
+	//	FEA_ASSERT_MOVE_ASSIGNABLE(t); \
+	//}
+
+//#define FEA_GENERATED_5_CTORS(t)
+// static_assert(FEA_GENERATED_5_CTORS_IMPL(t)())
