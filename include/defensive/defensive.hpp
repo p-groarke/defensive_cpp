@@ -32,207 +32,133 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #include <type_traits>
 
-/*
-#define FEA_DEFAULT_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_default_constructible_v<t>, \
-				#t " : must be default constructible"); \
-		return std::is_default_constructible_v<t>; \
+/**
+ * Rule of 5
+ */
+namespace detail {
+template <class T>
+struct trivial_checker {
+	static constexpr bool all_trivial() {
+		return trivially_destructible && trivially_copy_constructible
+				&& trivially_move_constructible && trivially_copy_assignable
+				&& trivially_move_assignable;
 	}
-
-#define FEA_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_default_constructible_v<t>, \
-				#t " : must be trivially default constructible"); \
-		return std::std::is_trivially_default_constructible_v<t>; \
+	static constexpr bool all_non_trivial() {
+		return !trivially_destructible && !trivially_copy_constructible
+				&& !trivially_move_constructible && !trivially_copy_assignable
+				&& !trivially_move_assignable;
 	}
+	static constexpr bool trivially_destructible
+			= std::is_trivially_destructible_v<T>;
+	static constexpr bool trivially_copy_constructible
+			= std::is_trivially_copy_constructible_v<T>;
+	static constexpr bool trivially_move_constructible
+			= std::is_trivially_move_constructible_v<T>;
+	static constexpr bool trivially_copy_assignable
+			= std::is_trivially_copy_assignable_v<T>;
+	static constexpr bool trivially_move_assignable
+			= std::is_trivially_move_assignable_v<T>;
+};
+} // namespace detail
 
-#define FEA_COPY_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_copy_constructible_v<t>, \
-				#t " : must be copy constructible"); \
-		return std::is_copy_constructible_v<t>; \
-	}
-
-#define FEA_NOT_COPY_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(!std::is_copy_constructible_v<t>, \
-				#t " : must not be copy constructible"); \
-		return !std::is_copy_constructible_v<t>; \
-	}
-
-#define FEA_TRIVIALLY_COPY_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_copy_constructible_v<t>, \
-				#t " : must be trivially copy constructible"); \
-		return std::is_trivially_copy_constructible_v<t>; \
-	}
-
-#define FEA_COPY_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_copy_assignable_v<t>, \
-				#t " : must be copy assignable"); \
-		return std::is_copy_assignable_v<t>; \
-	}
-
-#define FEA_NOT_COPY_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(!std::is_copy_assignable_v<t>, \
-				#t " : must not be copy assignable"); \
-		return !std::is_copy_assignable_v<t>; \
-	}
-
-#define FEA_TRIVIALLY_COPY_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_copy_assignable_v<t>, \
-				#t " : must be trivially copy assignable"); \
-		return std::is_trivially_copy_assignable_v<t>; \
-	}
-
-#define FEA_MOVE_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_move_constructible_v<t>, \
-				#t " : must be move constructible"); \
-		return std::is_move_constructible_v<t>; \
-	}
-
-#define FEA_TRIVIALLY_MOVE_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_move_constructible_v<t>, \
-				#t " : must be trivially move constructible"); \
-		return std::is_trivially_move_constructible_v<t>; \
-	}
-
-#define FEA_NOTHROW_MOVE_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_nothrow_move_constructible_v<t>, \
-				#t " : must be nothrow move constructible"); \
-		return std::is_nothrow_move_constructible_v<t>; \
-	}
-
-#define FEA_MOVE_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_move_assignable_v<t>, \
-				#t " : must be move assignable"); \
-		return std::is_move_assignable_v<t>; \
-	}
-
-#define FEA_TRIVIALLY_MOVE_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_move_assignable_v<t>, \
-				#t " : must be trivially move assignable"); \
-		return std::is_trivially_move_assignable_v<t>; \
-	}
-
-#define FEA_DESTRUCTIBLE(t) \
-	[]() { \
-		static_assert( \
-				std::is_destructible_v<t>, #t " : must be destructible"); \
-		return std::is_destructible_v<t>; \
-	}
-
-#define FEA_TRIVIALLY_DESTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_destructible_v<t>, \
-				#t " : must be trivially destructible"); \
-		return std::is_trivially_destructible_v<t>; \
-	}
-
-#define FEA_TRIVIALLY_COPYABLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_copyable_v<t>, \
-				#t " : must be trivially copyable"); \
-		return std::is_trivially_copyable_v<t>; \
-	}
-
-#define FEA_FULFILLS_RULE_OF_5(t) \
-	static_assert(FEA_DESTRUCTIBLE(t)() && FEA_COPY_CONSTRUCTIBLE(t)() \
-					&& FEA_MOVE_CONSTRUCTIBLE(t)() && FEA_COPY_ASSIGNABLE(t)() \
-					&& FEA_MOVE_ASSIGNABLE(t)(), \
-			#t " : doesn't fulfill rule of 5")
-
-#define FEA_FULFILLS_RULE_OF_6(t) \
-	static_assert(FEA_DESTRUCTIBLE(t)() && FEA_DEFAULT_CONSTRUCTIBLE(t)() \
-					&& FEA_COPY_CONSTRUCTIBLE(t)() \
-					&& FEA_MOVE_CONSTRUCTIBLE(t)() && FEA_COPY_ASSIGNABLE(t)() \
-					&& FEA_MOVE_ASSIGNABLE(t)(), \
-			#t " : doesn't fulfill rule of 5")
-
-// is_trivially_copyable broken everywhere
-#define FEA_FULFILLS_FAST_VECTOR(t) \
-	static_assert((std::is_trivially_copy_constructible_v< \
-						   t> && std::is_trivially_destructible_v<t>) \
-					|| std::is_nothrow_move_constructible_v<t>, \
-			#t " : doesn't fulfill fast vector (trivially copy constructible " \
-			   "and trivially destructible, or nothrow move constructible)")
-
-#define FEA_FULFILLS_MOVE_ONLY(t) \
-	static_assert(FEA_NOT_COPY_CONSTRUCTIBLE(t)() \
-					&& FEA_MOVE_CONSTRUCTIBLE(t)() \
-					&& FEA_NOT_COPY_ASSIGNABLE(t)() \
-					&& FEA_MOVE_ASSIGNABLE(t)(), \
-			#t " : doesn't fulfill move only")
-
-*/
-
-// Rule of 5
 #define FEA_ASSERT_DESTRUCTIBLE(t) \
-	static_assert(std::is_destructible_v<t>, #t " : must be destructible")
+	static_assert(std::is_destructible_v<t>, " - " #t " : must be destructible")
+
+#define FEA_ASSERT_NOT_TRIVIALLY_DESTRUCTIBLE(t) \
+	static_assert(!std::is_trivially_destructible_v<t>, \
+			" - " #t " : must declare destructor manually")
 
 #define FEA_ASSERT_COPY_CONSTRUCTIBLE(t) \
 	static_assert(std::is_copy_constructible_v<t>, \
-			#t " : must be copy constructible")
+			" - " #t " : must be copy constructible")
+
+#define FEA_ASSERT_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(t) \
+	static_assert(!std::is_trivially_copy_constructible_v<t>, \
+			" - " #t " : must declare copy constructor manually")
 
 #define FEA_ASSERT_MOVE_CONSTRUCTIBLE(t) \
 	static_assert(std::is_move_constructible_v<t>, \
-			#t " : must be move constructible")
+			" - " #t " : must be move constructible")
+
+#define FEA_ASSERT_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(t) \
+	static_assert(!std::is_trivially_move_constructible_v<t>, \
+			" - " #t " : must declare move constructor manually")
 
 #define FEA_ASSERT_COPY_ASSIGNABLE(t) \
-	static_assert(std::is_copy_assignable_v<t>, #t " : must be copy assignable")
+	static_assert(std::is_copy_assignable_v<t>, \
+			" - " #t " : must be copy assignable")
+
+#define FEA_ASSERT_NOT_TRIVIALLY_COPY_ASSIGNABLE(t) \
+	static_assert(!std::is_trivially_copy_assignable_v<t>, \
+			" - " #t " : must declare copy assignement operator manually")
 
 #define FEA_ASSERT_MOVE_ASSIGNABLE(t) \
-	static_assert(std::is_move_assignable_v<t>, #t " : must be move assignable")
+	static_assert(std::is_move_assignable_v<t>, \
+			" - " #t " : must be move assignable")
 
-#define FEA_CREATE_GENERATED_5_ALL_CHECK(t) \
-	namespace detail { \
-	inline constexpr bool assert_generated_5_##t() { \
-		constexpr bool generated_5 \
-				= std::is_destructible_v< \
-						  t> && std::is_copy_constructible_v<t> && std::is_move_constructible_v<t> && std::is_copy_assignable_v<t> && std::is_move_assignable_v<t>; \
+#define FEA_ASSERT_NOT_TRIVIALLY_MOVE_ASSIGNABLE(t) \
+	static_assert(!std::is_trivially_move_assignable_v<t>, \
+			" - " #t " : must declare move assignement operator manually")
+
+#define FEA_GENERATED_5_IMPL(t) \
+	std::is_destructible_v<t>&& std::is_copy_constructible_v<t>&& \
+			std::is_move_constructible_v<t>&& std::is_copy_assignable_v<t>&& \
+					std::is_move_assignable_v<t>
+
+#define FEA_FULFILLS_5_CTORS_IMPL_ALL(t) \
+	[]() constexpr { \
+		constexpr bool generated_5 = FEA_GENERATED_5_IMPL(t); \
 		static_assert(generated_5, \
-				#t \
-				" : doesn't implement required 5 constructors and operators " \
-				"(dtor, copy ctor, move ctor, copy assignement, move " \
-				"assignement)"); \
+				#t " : doesn't declare all 5 constructors and operators"); \
 		return generated_5; \
-	} \
 	}
 
-#define FEA_CREATE_GENERATED_5_INDIVUAL_CHECKS(t) \
-	namespace detail { \
-	inline constexpr void assert_individual_generated_5_##t( \
-			bool everything_ok) { \
-		if constexpr (!everything_ok) { \
+#define FEA_FULFILLS_5_CTORS_IMPL(t) \
+	[]() constexpr { \
+		constexpr bool generated_5 = FEA_GENERATED_5_IMPL(t); \
+		if constexpr (!FEA_FULFILLS_5_CTORS_IMPL_ALL(t)()) { \
 			FEA_ASSERT_DESTRUCTIBLE(t); \
 			FEA_ASSERT_COPY_CONSTRUCTIBLE(t); \
 			FEA_ASSERT_MOVE_CONSTRUCTIBLE(t); \
 			FEA_ASSERT_COPY_ASSIGNABLE(t); \
 			FEA_ASSERT_MOVE_ASSIGNABLE(t); \
 		} \
-	} \
+		return generated_5; \
+	}
+
+#define FEA_FULFILLS_5_CTORS_IMPL_TRUE(t) \
+	[]() constexpr { \
+		if constexpr (!FEA_FULFILLS_5_CTORS_IMPL_ALL(t)()) { \
+			FEA_ASSERT_DESTRUCTIBLE(t); \
+			FEA_ASSERT_COPY_CONSTRUCTIBLE(t); \
+			FEA_ASSERT_MOVE_CONSTRUCTIBLE(t); \
+			FEA_ASSERT_COPY_ASSIGNABLE(t); \
+			FEA_ASSERT_MOVE_ASSIGNABLE(t); \
+		} \
+		return true; \
 	}
 
 
-#define FEA_GENERATED_5_CTORS(t) \
-	FEA_CREATE_GENERATED_5_ALL_CHECK(t) \
-	FEA_CREATE_GENERATED_5_INDIVIDUAL_CHECKS(t)
-//if constexpr (!detail::assert_generated_5_##t()) { \
-	//	FEA_ASSERT_DESTRUCTIBLE(t); \
-	//	FEA_ASSERT_COPY_CONSTRUCTIBLE(t); \
-	//	FEA_ASSERT_MOVE_CONSTRUCTIBLE(t); \
-	//	FEA_ASSERT_COPY_ASSIGNABLE(t); \
-	//	FEA_ASSERT_MOVE_ASSIGNABLE(t); \
-	//}
+#define FEA_FULFILLS_5_CTORS(t) \
+	static_assert(FEA_FULFILLS_5_CTORS_IMPL_TRUE(t)(), "")
 
-//#define FEA_GENERATED_5_CTORS(t)
-// static_assert(FEA_GENERATED_5_CTORS_IMPL(t)())
+#define FEA_FULFILLS_RULE_OF_5_IMPL(t) \
+	[]() constexpr { \
+		if constexpr (FEA_FULFILLS_5_CTORS_IMPL(t)() \
+				&& !(detail::trivial_checker<t>::all_trivial() \
+						   || detail::trivial_checker< \
+									  t>::all_non_trivial())) { \
+			FEA_ASSERT_NOT_TRIVIALLY_DESTRUCTIBLE(t); \
+			FEA_ASSERT_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(t); \
+			FEA_ASSERT_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(t); \
+			FEA_ASSERT_NOT_TRIVIALLY_COPY_ASSIGNABLE(t); \
+			FEA_ASSERT_NOT_TRIVIALLY_MOVE_ASSIGNABLE(t); \
+		} \
+		return !(FEA_GENERATED_5_IMPL(t) \
+				&& !(detail::trivial_checker<t>::all_trivial() \
+						   || detail::trivial_checker<t>::all_non_trivial())); \
+	}
+
+#define FEA_FULFILLS_RULE_OF_5(t) \
+	static_assert(FEA_FULFILLS_RULE_OF_5_IMPL(t)(), \
+			#t " : doesn't fulfill rule of 5")
