@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project(defensive CXX)
+project(defensive_cpp CXX)
 
 include(GoogleTest)
 
