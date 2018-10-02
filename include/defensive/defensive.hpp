@@ -55,13 +55,9 @@ struct defensive {
 					&& !trivially_copy_assignable && !trivially_move_assignable;
 		}
 		static constexpr bool rule_pass() {
-			if constexpr (!generated_ctors()) {
-				// If we don't have 5 constructors, don't trigger static_assert
-				// for rule of 5 user defined constructors.
-				return true;
-			} else {
-				return all_trivial() || all_non_trivial();
-			}
+			// If we don't have 5 constructors, don't trigger static_assert
+			// for rule of 5 user defined constructors.
+			return !generated_ctors() || all_trivial() || all_non_trivial();
 		}
 		static constexpr bool user_dtor_ok() {
 			return rule_pass() || !trivially_destructible;
@@ -93,35 +89,19 @@ struct defensive {
 					|| nothrow_move_constructible;
 		}
 		static constexpr bool trivial_dtor_ok() {
-			if constexpr (rule_pass()) {
-				return true;
-			} else if constexpr (!trivially_copy_constructible) {
-				// Only warn if type has trivial copy ctor
-				return true;
-			} else {
-				return trivially_destructible;
-			}
+			// Only warn if type has trivial copy ctor
+			return rule_pass() || !trivially_copy_constructible
+					|| trivially_destructible;
 		}
 		static constexpr bool trivial_copy_ctor_ok() {
-			if constexpr (rule_pass()) {
-				return true;
-			} else if constexpr (!trivially_destructible) {
-				// Only warn if type has trivial destructor
-				return true;
-			} else {
-				return trivially_copy_constructible;
-			}
+			// Only warn if type has trivial destructor
+			return rule_pass() || !trivially_destructible
+					|| trivially_copy_constructible;
 		}
 		static constexpr bool nothrow_move_ctor_ok() {
-			if constexpr (rule_pass()) {
-				return true;
-			} else if constexpr (!trivially_destructible
-					&& !trivially_copy_constructible) {
-				// Fallback to less strict noexcept move ctor
-				return nothrow_move_constructible;
-			} else {
-				return true;
-			}
+			return rule_pass() || trivially_destructible
+					|| trivially_copy_constructible
+					|| nothrow_move_constructible;
 		}
 	};
 
@@ -145,26 +125,28 @@ struct defensive {
 	};
 
 	static constexpr bool default_constructible
-			= std::is_default_constructible_v<T>;
+			= std::is_default_constructible<T>::value;
 	static constexpr bool trivially_default_constructible
-			= std::is_trivially_default_constructible_v<T>;
-	static constexpr bool destructible = std::is_destructible_v<T>;
+			= std::is_trivially_default_constructible<T>::value;
+	static constexpr bool destructible = std::is_destructible<T>::value;
 	static constexpr bool trivially_destructible
-			= std::is_trivially_destructible_v<T>;
-	static constexpr bool copy_constructible = std::is_copy_constructible_v<T>;
+			= std::is_trivially_destructible<T>::value;
+	static constexpr bool copy_constructible
+			= std::is_copy_constructible<T>::value;
 	static constexpr bool trivially_copy_constructible
-			= std::is_trivially_copy_constructible_v<T>;
-	static constexpr bool move_constructible = std::is_move_constructible_v<T>;
+			= std::is_trivially_copy_constructible<T>::value;
+	static constexpr bool move_constructible
+			= std::is_move_constructible<T>::value;
 	static constexpr bool trivially_move_constructible
-			= std::is_trivially_move_constructible_v<T>;
+			= std::is_trivially_move_constructible<T>::value;
 	static constexpr bool nothrow_move_constructible
-			= std::is_nothrow_move_constructible_v<T>;
-	static constexpr bool copy_assignable = std::is_copy_assignable_v<T>;
+			= std::is_nothrow_move_constructible<T>::value;
+	static constexpr bool copy_assignable = std::is_copy_assignable<T>::value;
 	static constexpr bool trivially_copy_assignable
-			= std::is_trivially_copy_assignable_v<T>;
-	static constexpr bool move_assignable = std::is_move_assignable_v<T>;
+			= std::is_trivially_copy_assignable<T>::value;
+	static constexpr bool move_assignable = std::is_move_assignable<T>::value;
 	static constexpr bool trivially_move_assignable
-			= std::is_trivially_move_assignable_v<T>;
+			= std::is_trivially_move_assignable<T>::value;
 };
 } // namespace detail
 

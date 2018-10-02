@@ -4,7 +4,7 @@ project(defensive_cpp CXX)
 include(GoogleTest)
 
 # Require up-to-date compiler.
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 
 # Dependency directories
 set(LIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)

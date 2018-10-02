@@ -1,6 +1,5 @@
 #include "defensive/defensive.hpp"
 #include <cstdio>
-#include <gtest/gtest.h>
 
 namespace {
 struct test1 {
@@ -74,9 +73,9 @@ struct test7 {
 FEA_FULFILLS_FAST_VECTOR(test7);
 
 struct test8 {
-	~test8() = default;
 	test8(const test8&) = delete;
-	test8(test8&&) = default;
+	test8(test8&&) noexcept {
+	}
 };
 FEA_FULFILLS_FAST_VECTOR(test8);
 
@@ -104,7 +103,6 @@ struct test11 {
 FEA_FULFILLS_MOVE_ONLY(test11);
 } // namespace
 
-int main(int argc, char** argv) {
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+int main(int, char**) {
+	return 0;
 }
