@@ -9,10 +9,8 @@ struct test1 {
 	}
 	test1(test1&&) {
 	}
-	test1& operator=(const test1&) {
-	}
-	test1& operator=(test1&&) {
-	}
+	test1& operator=(const test1&) = default;
+	test1& operator=(test1&&) = default;
 };
 FEA_FULFILLS_5_CTORS(test1);
 FEA_FULFILLS_RULE_OF_5(test1);

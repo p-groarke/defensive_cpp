@@ -33,12 +33,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 
 /**
- * Rule of 5
+ * Defensive traits
+ *
+ * Check all required type_traits and compose rules with them. Since
+ * static_asserts cannot be in constexpr branches, the rules get a little iffy.
+ * We need to make sure every rule only triggers in certain conditions, which is
+ * unintuitive but required.
  */
 namespace detail {
 template <class T>
 struct defensive {
-	// Rule of 5
+	/**
+	 * Rule of 5
+	 *
+	 * First we make sure all contructors are present, if not then bail out
+	 * since you can't fulfill rule of 5 if you have some constructors missing.
+	 * If all constructors are present, we check whether they are all trivial or
+	 * all non-trivial.
+	 * Due to a C++ bug, manually implementing a destructor
+	 * will bypass checking the copy and move constructors. Nothing we can do
+	 * about that :(
+	 */
 	struct five {
 		static constexpr bool generated_ctors() {
 			return destructible && copy_constructible && move_constructible
@@ -54,11 +69,16 @@ struct defensive {
 					&& !trivially_move_constructible
 					&& !trivially_copy_assignable && !trivially_move_assignable;
 		}
+
+		// Rule of 5 pass.
 		static constexpr bool rule_pass() {
 			// If we don't have 5 constructors, don't trigger static_assert
-			// for rule of 5 user defined constructors.
+			// for rule of 5 user defined constructors. That error will be
+			// caught by another static assert.
 			return !generated_ctors() || all_trivial() || all_non_trivial();
 		}
+
+		// Always silence specific error messages if the rule is passing.
 		static constexpr bool user_dtor_ok() {
 			return rule_pass() || !trivially_destructible;
 		}
@@ -83,11 +103,22 @@ struct defensive {
 		}
 	};
 
+	/**
+	 * Fast Vector
+	 *
+	 * Ensures your class is optimized to be stored in a vector. Checks whether
+	 * it is trivially destructible (skips destructor call on resize) and
+	 * trivially copy constructible (use memcpy on resive). If not, falls back
+	 * to ensure your class is noexcept move constructible (vector resize cannot
+	 * use your move constructor if it isn't marked noexcept).
+	 */
 	struct fast_vector {
 		static constexpr bool rule_pass() {
 			return (trivially_copy_constructible && trivially_destructible)
 					|| nothrow_move_constructible;
 		}
+
+		// Always silence specific error messages if the rule is passing.
 		static constexpr bool trivial_dtor_ok() {
 			// Only warn if type has trivial copy ctor
 			return rule_pass() || !trivially_copy_constructible
@@ -105,11 +136,19 @@ struct defensive {
 		}
 	};
 
+	/**
+	 * Move Only
+	 *
+	 * Make sure an object is move only. There is no copy constructor/operator
+	 * and the move constructor/operator is present.
+	 */
 	struct move_only {
 		static constexpr bool rule_pass() {
 			return !copy_constructible && !copy_assignable && move_constructible
 					&& move_assignable;
 		}
+
+		// Always silence specific error messages if the rule is passing.
 		static constexpr bool copy_ctor_ok() {
 			return rule_pass() || !copy_constructible;
 		}
@@ -124,6 +163,7 @@ struct defensive {
 		}
 	};
 
+	// Required traits computed once.
 	static constexpr bool default_constructible
 			= std::is_default_constructible<T>::value;
 	static constexpr bool trivially_default_constructible
@@ -150,6 +190,17 @@ struct defensive {
 };
 } // namespace detail
 
+/**
+ * FEA_FULFULLS_5_CTORS
+ *
+ * Makes sure 5 constructors/operators are present (destructor, copy
+ * constructor, move constructor, copy assignement constructor, move assignement
+ * constructor). Useful when using rule of 0 or when using = default.
+ *
+ * ex.
+ * struct p {};
+ * FEA_FULFILLS_5_CTORS(p);
+ */
 #define FEA_FULFILLS_5_CTORS(t) \
 	static_assert(detail::defensive<t>::five::generated_ctors(), \
 			#t " : requires destructor, copy and move constructor, copy and " \
@@ -165,6 +216,18 @@ struct defensive {
 	static_assert(detail::defensive<t>::move_assignable, \
 			" - " #t " : must be move assignable")
 
+/**
+ * FEA_FULFULLS_RULE_OF_5
+ *
+ * Makes sure a class fulfulls Rule of 5. All 5 constructors/operators are
+ * present (destructor, copy constructor, move constructor, copy assignement
+ * operator, move assignement operator). If you implement 1 custom
+ * constructor/operator, you probably need to implement all of them.
+ *
+ * ex.
+ * struct p {};
+ * FEA_FULFILLS_RULE_OF_5(p);
+ */
 #define FEA_FULFILLS_RULE_OF_5(t) \
 	FEA_FULFILLS_5_CTORS(t); \
 	static_assert(detail::defensive<t>::five::rule_pass(), \
@@ -182,6 +245,18 @@ struct defensive {
 			" - " #t \
 			" : must implement user-defined move assignement operator")
 
+/**
+ * FEA_FULFULLS_6_CTORS
+ *
+ * Make sure all 6 constructors/operators are
+ * present (default, destructor, copy constructor, move constructor, copy
+ * assignement operator, move assignement operator). Useful when using rule of 0
+ * or = default.
+ *
+ * ex.
+ * struct p {};
+ * FEA_FULFILLS_6_CTORS(p);
+ */
 #define FEA_FULFILLS_6_CTORS(t) \
 	static_assert(detail::defensive<t>::six::generated_ctors(), \
 			#t " : requires default constructor, destructor, copy and move " \
@@ -199,6 +274,21 @@ struct defensive {
 	static_assert(detail::defensive<t>::move_assignable, \
 			" - " #t " : must be move assignable")
 
+/**
+ * FEA_FULFULLS_RULE_OF_6
+ *
+ * Rule of 5 with an extra check to make sure your class has a default
+ * constructor. All 6 constructors/operators are present (default constructor,
+ * destructor, copy constructor, move constructor, copy assignement operator,
+ * move assignement operator). If you implement 1 of 5 custom
+ * constructor/operator, you probably need to implement all of them (destructor,
+ * copy constructor, move constructor, copy assignement operator, move
+ * assignement operator).
+ *
+ * ex.
+ * struct p {};
+ * FEA_FULFILLS_RULE_OF_6(p);
+ */
 #define FEA_FULFILLS_RULE_OF_6(t) \
 	FEA_FULFILLS_6_CTORS(t); \
 	static_assert(detail::defensive<t>::five::rule_pass(), \
@@ -216,6 +306,19 @@ struct defensive {
 			" - " #t \
 			" : must implement user-defined move assignement operator")
 
+/**
+ * Fast Vector
+ *
+ * Ensures your class is optimized to be stored in a vector. Checks whether
+ * it is trivially destructible (skips destructor call on resize) and
+ * trivially copy constructible (use memcpy on resive). If not, falls back
+ * to ensure your class is noexcept move constructible (vector resize cannot
+ * use your move constructor if it isn't marked noexcept).
+ *
+ * ex.
+ * struct p {};
+ * FEA_FULFILLS_FAST_VECTOR(p);
+ */
 #define FEA_FULFILLS_FAST_VECTOR(t) \
 	static_assert(detail::defensive<t>::fast_vector::rule_pass(), \
 			#t " : doesn't fulfill fast vector requirements"); \
@@ -227,6 +330,17 @@ struct defensive {
 			" - " #t " : must implement either trivial destructor and " \
 			"trivial copy constructor, or noexcept move constructor")
 
+/**
+ * Move Only
+ *
+ * Ensures your class is move only. There is no copy constructor and no copy
+ * assignement operator. The move constructor and move assignement operator is
+ * present.
+ *
+ * ex.
+ * struct p {};
+ * FEA_FULFILLS_MOVE_ONLY(p);
+ */
 #define FEA_FULFILLS_MOVE_ONLY(t) \
 	static_assert(detail::defensive<t>::move_only::rule_pass(), \
 			#t " : doesn't fulfill move only"); \
