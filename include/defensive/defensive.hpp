@@ -163,6 +163,36 @@ struct defensive {
 		}
 	};
 
+	// Object has no default constructor, destructor, copy constructor, move
+	// constructor, copy operator, move operator.
+	struct non_constructible {
+		static constexpr bool rule_pass() {
+			return !default_constructible && !destructible
+					&& !copy_constructible && !move_constructible
+					&& !copy_assignable && !move_assignable;
+		}
+
+		// Always silence specific error messages if the rule is passing.
+		static constexpr bool ctor_ok() {
+			return rule_pass() || !default_constructible;
+		}
+		static constexpr bool dtor_ok() {
+			return rule_pass() || !destructible;
+		}
+		static constexpr bool copy_ctor_ok() {
+			return rule_pass() || !copy_constructible;
+		}
+		static constexpr bool move_ctor_ok() {
+			return rule_pass() || !move_constructible;
+		}
+		static constexpr bool copy_ass_ok() {
+			return rule_pass() || !copy_assignable;
+		}
+		static constexpr bool move_ass_ok() {
+			return rule_pass() || !move_assignable;
+		}
+	};
+
 	// Required traits computed once.
 	static constexpr bool default_constructible
 			= std::is_default_constructible<T>::value;
@@ -352,3 +382,30 @@ struct defensive {
 			" - " #t " : must not declare copy assignement operator"); \
 	static_assert(detail::defensive<t>::move_only::move_ass_ok(), \
 			" - " #t " : must declare move assignement operator")
+
+/**
+ * Non constructible
+ *
+ * Ensures your class is non constructible, aka had no default constructor,
+ * destructor, copy constructor, move constructor, copy assignement operator and
+ * move assignement operator. Useful when writing static singleton classes.
+ *
+ * ex.
+ * struct p {};
+ * FEA_FULFILLS_NON_CONSTRUCTIBLE(p);
+ */
+#define FEA_FULFILLS_NON_CONSTRUCTIBLE(t) \
+	static_assert(detail::defensive<t>::non_constructible::rule_pass(), \
+			#t " : doesn't fulfill non-constructible"); \
+	static_assert(detail::defensive<t>::non_constructible::ctor_ok(), \
+			" - " #t " : must not declare default constructor"); \
+	static_assert(detail::defensive<t>::non_constructible::dtor_ok(), \
+			" - " #t " : must not declare destructor"); \
+	static_assert(detail::defensive<t>::non_constructible::copy_ctor_ok(), \
+			" - " #t " : must not declare copy constructor"); \
+	static_assert(detail::defensive<t>::non_constructible::move_ctor_ok(), \
+			" - " #t " : must not declare move constructor"); \
+	static_assert(detail::defensive<t>::non_constructible::copy_ass_ok(), \
+			" - " #t " : must not declare copy assignement operator"); \
+	static_assert(detail::defensive<t>::non_constructible::move_ass_ok(), \
+			" - " #t " : must not declare move assignement operator")
