@@ -9,8 +9,10 @@ struct test1 {
 	}
 	test1(test1&&) {
 	}
-	test1& operator=(const test1&) = default;
-	test1& operator=(test1&&) = default;
+	test1& operator=(const test1&) {
+	}
+	test1& operator=(test1&&) {
+	}
 };
 FEA_FULFILLS_5_CTORS(test1);
 FEA_FULFILLS_RULE_OF_5(test1);
@@ -100,6 +102,7 @@ struct test11 {
 };
 FEA_FULFILLS_MOVE_ONLY(test11);
 } // namespace
+
 
 int main(int, char**) {
 	return 0;
