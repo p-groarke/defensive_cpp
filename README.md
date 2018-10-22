@@ -16,7 +16,7 @@ See [Easy Defensive Programming](https://philippegroarke.com/posts/2018/easy_def
 ## Example
 More examples can be found in `test/main.cpp`.
 
-```
+```cpp
 struct example {
 	~example() {
 	}
@@ -33,7 +33,7 @@ struct example {
 FEA_FULFILLS_RULE_OF_5(example);	// Passes
 ```
 
-```
+```cpp
 struct example {
 	~example() {
 	}
@@ -47,8 +47,10 @@ struct example {
 
 FEA_FULFILLS_RULE_OF_5(example);	// Fails
 
-// Failure error messages:
-test1 : doesn't fulfill rule of 5
-- test1 : must implement user-defined move assignement operator
-- test1 : must implement user-defined copy assignement operator
+/**
+ * Failure error messages:
+ * - test1 : doesn't fulfill rule of 5
+ * - test1 : must implement user-defined move assignement operator
+ * - test1 : must implement user-defined copy assignement operator
+ */
 ```
