@@ -29,8 +29,11 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
 # Conan things.
-include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
-conan_basic_setup(TARGETS)
+option(BUILD_TESTING "Build and run tests." On)
+if (${BUILD_TESTING})
+	include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
+	conan_basic_setup(TARGETS)
+endif()
 
 
 # Libs
@@ -51,8 +54,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/.clang-format ${CMAKE_CURRENT_BINARY_
 ##
 # Tests
 ##
-option(BUILD_TESTING "Build and run tests." On)
-
 if (${BUILD_TESTING})
 	enable_testing()
 
