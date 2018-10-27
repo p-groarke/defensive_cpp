@@ -1,7 +1,9 @@
 cmake_minimum_required (VERSION 3.10)
-project(defensive_cpp CXX)
+project(defensive_cpp VERSION 1.0.0 LANGUAGES CXX)
 
 include(GoogleTest)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 # Require up-to-date compiler.
 set(CMAKE_CXX_STANDARD 11)
@@ -39,7 +41,6 @@ endif()
 # Libs
 file(GLOB_RECURSE LIB_HEADERS "include/*.hpp" "include/*.h" "include/*.tpp")
 add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} INTERFACE ${LIB_INCLUDE_DIR})
 target_sources(${PROJECT_NAME} INTERFACE
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 	$<BUILD_INTERFACE:${LIB_HEADERS}>
@@ -60,6 +61,7 @@ if (${BUILD_TESTING})
 	set(TEST_NAME ${PROJECT_NAME}_tests)
 	file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp" "tests/*.c" "tests/*.hpp" "tests/*.h" "tests/*.tpp")
 	add_executable(${TEST_NAME} ${TEST_SOURCES})
+	target_include_directories(${TEST_NAME} INTERFACE ${LIB_INCLUDE_DIR})
 	target_link_libraries(${TEST_NAME} ${PROJECT_NAME} CONAN_PKG::gtest)
 
 	gtest_discover_tests(${TEST_NAME})
@@ -77,3 +79,40 @@ if (${BUILD_TESTING})
 	endif()
 endif()
 
+# Install Package Configuration
+set(DEFENSIVE_INSTALL_CONFIGDIR "${CMAKE_INSTALL_LIBDIR}/cmake/defensive")
+install(FILES ${LIB_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/defensive")
+
+write_basic_package_version_file(
+	"${CMAKE_CURRENT_BINARY_DIR}/defensiveConfigVersion.cmake"
+	VERSION ${${PROJECT_NAME}_VERSION}
+	COMPATIBILITY AnyNewerVersion
+	)
+
+configure_package_config_file(
+	cmake/defensiveConfig.cmake.in
+	${DEFENSIVE_INSTALL_CONFIGDIR}/defensiveConfig.cmake
+	INSTALL_DESTINATION ${DEFENSIVE_INSTALL_CONFIGDIR}
+	PATH_VARS CMAKE_INSTALL_INCLUDEDIR
+	NO_CHECK_REQUIRED_COMPONENTS_MACRO
+	)
+
+install(
+	FILES
+	"${CMAKE_CURRENT_BINARY_DIR}/${DEFENSIVE_INSTALL_CONFIGDIR}/defensiveConfig.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/defensiveConfigVersion.cmake"
+	DESTINATION ${DEFENSIVE_INSTALL_CONFIGDIR}
+	)
+
+install(TARGETS ${PROJECT_NAME} EXPORT defensiveTargets)
+
+export(EXPORT defensiveTargets
+	FILE "${CMAKE_CURRENT_BINARY_DIR}/defensiveTargets.cmake"
+	)
+
+install(
+	EXPORT defensiveTargets FILE defensiveTargets.cmake
+	DESTINATION ${DEFENSIVE_INSTALL_CONFIGDIR}
+	)
+
+export(PACKAGE ${PROJECT_NAME})
