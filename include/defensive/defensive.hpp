@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * We need to make sure every rule only triggers in certain conditions, which is
  * unintuitive but required.
  */
-namespace detail {
+namespace defensive_detail {
 template <class T>
 struct defensive {
 	/**
@@ -218,7 +218,7 @@ struct defensive {
 	static constexpr bool trivially_move_assignable
 			= std::is_trivially_move_assignable<T>::value;
 };
-} // namespace detail
+} // namespace defensive_detail
 
 /**
  * FEA_FULFULLS_5_CTORS
@@ -232,18 +232,18 @@ struct defensive {
  * FEA_FULFILLS_5_CTORS(p);
  */
 #define FEA_FULFILLS_5_CTORS(t) \
-	static_assert(detail::defensive<t>::five::generated_ctors(), \
+	static_assert(defensive_detail::defensive<t>::five::generated_ctors(), \
 			#t " : requires destructor, copy and move constructor, copy and " \
 			   "move assignement operator"); \
-	static_assert(detail::defensive<t>::destructible, \
+	static_assert(defensive_detail::defensive<t>::destructible, \
 			" - " #t " : must be destructible"); \
-	static_assert(detail::defensive<t>::copy_constructible, \
+	static_assert(defensive_detail::defensive<t>::copy_constructible, \
 			" - " #t " : must be copy constructible"); \
-	static_assert(detail::defensive<t>::move_constructible, \
+	static_assert(defensive_detail::defensive<t>::move_constructible, \
 			" - " #t " : must be move constructible"); \
-	static_assert(detail::defensive<t>::copy_assignable, \
+	static_assert(defensive_detail::defensive<t>::copy_assignable, \
 			" - " #t " : must be copy assignable"); \
-	static_assert(detail::defensive<t>::move_assignable, \
+	static_assert(defensive_detail::defensive<t>::move_assignable, \
 			" - " #t " : must be move assignable")
 
 /**
@@ -260,18 +260,18 @@ struct defensive {
  */
 #define FEA_FULFILLS_RULE_OF_5(t) \
 	FEA_FULFILLS_5_CTORS(t); \
-	static_assert(detail::defensive<t>::five::rule_pass(), \
+	static_assert(defensive_detail::defensive<t>::five::rule_pass(), \
 			#t " : doesn't fulfill rule of 5"); \
-	static_assert(detail::defensive<t>::five::user_dtor_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_dtor_ok(), \
 			" - " #t " : must implement user-defined destructor"); \
-	static_assert(detail::defensive<t>::five::user_copy_ctor_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_copy_ctor_ok(), \
 			" - " #t " : must implement user-defined copy constructor"); \
-	static_assert(detail::defensive<t>::five::user_move_ctor_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_move_ctor_ok(), \
 			" - " #t " : must implement user-defined move constructor"); \
-	static_assert(detail::defensive<t>::five::user_copy_ass_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_copy_ass_ok(), \
 			" - " #t \
 			" : must implement user-defined copy assignement operator"); \
-	static_assert(detail::defensive<t>::five::user_move_ass_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_move_ass_ok(), \
 			" - " #t \
 			" : must implement user-defined move assignement operator")
 
@@ -288,20 +288,20 @@ struct defensive {
  * FEA_FULFILLS_6_CTORS(p);
  */
 #define FEA_FULFILLS_6_CTORS(t) \
-	static_assert(detail::defensive<t>::six::generated_ctors(), \
+	static_assert(defensive_detail::defensive<t>::six::generated_ctors(), \
 			#t " : requires default constructor, destructor, copy and move " \
 			   "constructor, copy and move assignement operator"); \
-	static_assert(detail::defensive<t>::default_constructible, \
+	static_assert(defensive_detail::defensive<t>::default_constructible, \
 			" - " #t " : must be default constructible"); \
-	static_assert(detail::defensive<t>::destructible, \
+	static_assert(defensive_detail::defensive<t>::destructible, \
 			" - " #t " : must be destructible"); \
-	static_assert(detail::defensive<t>::copy_constructible, \
+	static_assert(defensive_detail::defensive<t>::copy_constructible, \
 			" - " #t " : must be copy constructible"); \
-	static_assert(detail::defensive<t>::move_constructible, \
+	static_assert(defensive_detail::defensive<t>::move_constructible, \
 			" - " #t " : must be move constructible"); \
-	static_assert(detail::defensive<t>::copy_assignable, \
+	static_assert(defensive_detail::defensive<t>::copy_assignable, \
 			" - " #t " : must be copy assignable"); \
-	static_assert(detail::defensive<t>::move_assignable, \
+	static_assert(defensive_detail::defensive<t>::move_assignable, \
 			" - " #t " : must be move assignable")
 
 /**
@@ -321,18 +321,18 @@ struct defensive {
  */
 #define FEA_FULFILLS_RULE_OF_6(t) \
 	FEA_FULFILLS_6_CTORS(t); \
-	static_assert(detail::defensive<t>::five::rule_pass(), \
+	static_assert(defensive_detail::defensive<t>::five::rule_pass(), \
 			#t " : doesn't fulfill rule of 5"); \
-	static_assert(detail::defensive<t>::five::user_dtor_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_dtor_ok(), \
 			" - " #t " : must implement user-defined destructor"); \
-	static_assert(detail::defensive<t>::five::user_copy_ctor_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_copy_ctor_ok(), \
 			" - " #t " : must implement user-defined copy constructor"); \
-	static_assert(detail::defensive<t>::five::user_move_ctor_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_move_ctor_ok(), \
 			" - " #t " : must implement user-defined move constructor"); \
-	static_assert(detail::defensive<t>::five::user_copy_ass_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_copy_ass_ok(), \
 			" - " #t \
 			" : must implement user-defined copy assignement operator"); \
-	static_assert(detail::defensive<t>::five::user_move_ass_ok(), \
+	static_assert(defensive_detail::defensive<t>::five::user_move_ass_ok(), \
 			" - " #t \
 			" : must implement user-defined move assignement operator")
 
@@ -350,13 +350,16 @@ struct defensive {
  * FEA_FULFILLS_FAST_VECTOR(p);
  */
 #define FEA_FULFILLS_FAST_VECTOR(t) \
-	static_assert(detail::defensive<t>::fast_vector::rule_pass(), \
+	static_assert(defensive_detail::defensive<t>::fast_vector::rule_pass(), \
 			#t " : doesn't fulfill fast vector requirements"); \
-	static_assert(detail::defensive<t>::fast_vector::trivial_dtor_ok(), \
+	static_assert( \
+			defensive_detail::defensive<t>::fast_vector::trivial_dtor_ok(), \
 			" - " #t " : must generate trivial destructor"); \
-	static_assert(detail::defensive<t>::fast_vector::trivial_copy_ctor_ok(), \
+	static_assert(defensive_detail::defensive< \
+						  t>::fast_vector::trivial_copy_ctor_ok(), \
 			" - " #t " : must generate trivial copy constructor"); \
-	static_assert(detail::defensive<t>::fast_vector::nothrow_move_ctor_ok(), \
+	static_assert(defensive_detail::defensive< \
+						  t>::fast_vector::nothrow_move_ctor_ok(), \
 			" - " #t " : must implement either trivial destructor and " \
 			"trivial copy constructor, or noexcept move constructor")
 
@@ -372,15 +375,15 @@ struct defensive {
  * FEA_FULFILLS_MOVE_ONLY(p);
  */
 #define FEA_FULFILLS_MOVE_ONLY(t) \
-	static_assert(detail::defensive<t>::move_only::rule_pass(), \
+	static_assert(defensive_detail::defensive<t>::move_only::rule_pass(), \
 			#t " : doesn't fulfill move only"); \
-	static_assert(detail::defensive<t>::move_only::copy_ctor_ok(), \
+	static_assert(defensive_detail::defensive<t>::move_only::copy_ctor_ok(), \
 			" - " #t " : must not declare copy constructor"); \
-	static_assert(detail::defensive<t>::move_only::move_ctor_ok(), \
+	static_assert(defensive_detail::defensive<t>::move_only::move_ctor_ok(), \
 			" - " #t " : must declare move constructor"); \
-	static_assert(detail::defensive<t>::move_only::copy_ass_ok(), \
+	static_assert(defensive_detail::defensive<t>::move_only::copy_ass_ok(), \
 			" - " #t " : must not declare copy assignement operator"); \
-	static_assert(detail::defensive<t>::move_only::move_ass_ok(), \
+	static_assert(defensive_detail::defensive<t>::move_only::move_ass_ok(), \
 			" - " #t " : must declare move assignement operator")
 
 /**
@@ -395,17 +398,24 @@ struct defensive {
  * FEA_FULFILLS_NON_CONSTRUCTIBLE(p);
  */
 #define FEA_FULFILLS_NON_CONSTRUCTIBLE(t) \
-	static_assert(detail::defensive<t>::non_constructible::rule_pass(), \
+	static_assert( \
+			defensive_detail::defensive<t>::non_constructible::rule_pass(), \
 			#t " : doesn't fulfill non-constructible"); \
-	static_assert(detail::defensive<t>::non_constructible::ctor_ok(), \
+	static_assert( \
+			defensive_detail::defensive<t>::non_constructible::ctor_ok(), \
 			" - " #t " : must not declare default constructor"); \
-	static_assert(detail::defensive<t>::non_constructible::dtor_ok(), \
+	static_assert( \
+			defensive_detail::defensive<t>::non_constructible::dtor_ok(), \
 			" - " #t " : must not declare destructor"); \
-	static_assert(detail::defensive<t>::non_constructible::copy_ctor_ok(), \
+	static_assert( \
+			defensive_detail::defensive<t>::non_constructible::copy_ctor_ok(), \
 			" - " #t " : must not declare copy constructor"); \
-	static_assert(detail::defensive<t>::non_constructible::move_ctor_ok(), \
+	static_assert( \
+			defensive_detail::defensive<t>::non_constructible::move_ctor_ok(), \
 			" - " #t " : must not declare move constructor"); \
-	static_assert(detail::defensive<t>::non_constructible::copy_ass_ok(), \
+	static_assert( \
+			defensive_detail::defensive<t>::non_constructible::copy_ass_ok(), \
 			" - " #t " : must not declare copy assignement operator"); \
-	static_assert(detail::defensive<t>::non_constructible::move_ass_ok(), \
+	static_assert( \
+			defensive_detail::defensive<t>::non_constructible::move_ass_ok(), \
 			" - " #t " : must not declare move assignement operator")
