@@ -5,18 +5,43 @@ Compile-time errors with nice error messages to prevent silently loosing implici
 
 See [Easy Defensive Programming](https://philippegroarke.com/posts/2018/easy_defensive_programming/) for an introduction to the concept and its beginnings. [Easy Defensive Programming - Up To Eleven](https://philippegroarke.com/posts/2018/easy_defensive_programming_2/) for a follow-up post about how the library is implemented and its limitations.
 
+## Table of contents
+- [Build Instructions](#build-instructions)
+  * [Windows](#windows)
+  * [Unixes](#unixes)
+- [Usage](#usage)
+- [Rules and Examples](#rules-and-examples)
+  * [FEA_FULFULLS_RULE_OF_5](#fea\_fulfulls\_rule\_of\_5)
+    + [Example](#example)
+  * [FEA_FULFULLS_5_CTORS](#fea\_fulfulls\_5\_ctors)
+    + [Example](#example-1)
+  * [FEA_FULFULLS_RULE_OF_6](#fea\_fulfulls\_rule\_of\_6)
+    + [Example](#example-2)
+  * [FEA_FULFULLS_6_CTORS](#fea\_fulfulls\_6\_ctors)
+    + [Example](#example-3)
+  * [FEA_FULFILLS_FAST_VECTOR](#fea\_fulfills\_fast\_vector)
+    + [Example](#example-4)
+  * [FEA_FULFILLS_MOVE_ONLY](#fea\_fulfills\_move\_only)
+    + [Example](#example-5)
+  * [FEA_FULFILLS_NON_CONSTRUCTIBLE](#fea\_fulfills\_non\_constructible)
+    + [Example](#example-6)
+
 ## Build Instructions
 `mkdir build && cd build`
 
 ### Windows
-`..\conan.bat && cmake .. -A x64 && cmake --build .`
-or
 `cmake .. -A x64 -DBUILD_TESTING=Off && cmake --build .`
 
-### Unixes
-`../conan.sh && cmake .. && cmake --build .`
 or
+
+`..\conan.bat && cmake .. -A x64 && cmake --build .`
+
+### Unixes
 `cmake .. -DBUILD_TESTING=Off && cmake --build .`
+
+or
+
+`../conan.sh && cmake .. && cmake --build .`
 
 ## Usage
 Include `<defensive/defensive.hpp>` and apply a rule macro after your class.
