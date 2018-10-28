@@ -61,7 +61,7 @@ FEA_FULFILLS_RULE_OF_5(example);	// Fails
 ```
 
 ## Rules and Examples
-More examples can be found in `test/main.cpp`.
+More examples can be found in `tests/main.cpp`.
 
 ### FEA_FULFULLS_RULE_OF_5
 Makes sure a class fulfulls Rule of 5. All 5 constructors/operators are present (destructor, copy constructor, move constructor, copy assignement operator, move assignement operator). If you implement 1 custom constructor/destructor/operator, you need to implement all of them.
